@@ -1,5 +1,8 @@
 # WebDNSChecker
 
+[![CI](https://github.com/davidpshaw/WebDNSChecker/actions/workflows/ci.yml/badge.svg)](https://github.com/davidpshaw/WebDNSChecker/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 A small self-hosted web app for DNS lookups, a browser-friendly `nslookup` / `dig`.
 It works on phones and desktops, has no CDN or external assets, and needs only one runtime dependency.
 
