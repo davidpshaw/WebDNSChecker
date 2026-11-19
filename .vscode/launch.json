@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // F5: build the image, run the container (in WSL "Ubuntu"), attach the debugger.
+      // App: http://localhost:8080. Stopping the debugger stops and removes the container.
+      "name": "Docker: build, run & debug",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "restart": false,
+      "timeout": 20000,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "docker: run",
+      "postDebugTask": "docker: stop"
+    }
+  ]
+}

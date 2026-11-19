@@ -1,0 +1,43 @@
+{
+  // Docker runs inside the "Ubuntu" WSL distro, so every task goes through wsl.exe.
+  // wsl.exe starts in the WSL path of the workspace folder (/mnt/c/...).
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker: build",
+      "type": "process",
+      "command": "wsl",
+      "args": ["-d", "Ubuntu", "-e", "docker", "build", "-t", "webdnschecker:dev", "."],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "docker: run",
+      "type": "process",
+      "command": "wsl",
+      "args": [
+        "-d", "Ubuntu", "-e", "bash", "-c",
+        "docker rm -f webdnschecker-dev >/dev/null 2>&1; docker run -d --rm --name webdnschecker-dev -p 8080:8080 -p 127.0.0.1:9229:9229 webdnschecker:dev node --inspect=0.0.0.0:9229 src/server.js && echo 'Running at http://localhost:8080'"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "docker: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: stop",
+      "type": "process",
+      "command": "wsl",
+      "args": ["-d", "Ubuntu", "-e", "bash", "-c", "docker stop webdnschecker-dev >/dev/null 2>&1; echo stopped"],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: logs",
+      "type": "process",
+      "command": "wsl",
+      "args": ["-d", "Ubuntu", "-e", "docker", "logs", "-f", "webdnschecker-dev"],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
