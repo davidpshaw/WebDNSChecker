@@ -17,7 +17,7 @@ It works on phones and desktops, has no CDN or external assets, and needs only o
 ## Run with Docker
 
 ```sh
-docker run -d --name dnschecker -p 8080:8080 <dockerhub-user>/webdnschecker
+docker run -d --name dnschecker -p 8080:8080 davidshawcodes/webdnschecker
 ```
 
 Then open http://localhost:8080.
@@ -25,9 +25,9 @@ Then open http://localhost:8080.
 "Default" uses the container's resolver. To point it somewhere specific, either:
 
 ```sh
-docker run -d -p 8080:8080 --dns 192.168.1.1 <dockerhub-user>/webdnschecker
+docker run -d -p 8080:8080 --dns 192.168.1.1 davidshawcodes/webdnschecker
 # or
-docker run -d -p 8080:8080 -e DEFAULT_DNS=192.168.1.1 <dockerhub-user>/webdnschecker
+docker run -d -p 8080:8080 -e DEFAULT_DNS=192.168.1.1 davidshawcodes/webdnschecker
 ```
 
 ### docker compose
@@ -45,7 +45,7 @@ To use the published image instead, a minimal setup is:
 ```yaml
 services:
   dnschecker:
-    image: <dockerhub-user>/webdnschecker:latest
+    image: davidshawcodes/webdnschecker:latest
     ports: ["8080:8080"]
     environment:
       DEFAULT_DNS: 192.168.1.1   # optional
@@ -92,7 +92,7 @@ images. It pushes them to Docker Hub whenever a `v*` tag is pushed (it can also 
 
 Set up the repository:
 - Secrets: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a Docker Hub access token)
-- Variable: `DOCKERHUB_REPO`, for example `youruser/webdnschecker`
+- Variable: `DOCKERHUB_REPO` = `davidshawcodes/webdnschecker` (already set)
 
 Release:
 

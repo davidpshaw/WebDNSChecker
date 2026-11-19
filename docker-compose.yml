@@ -3,7 +3,7 @@
 # docker compose down              → stop and remove
 #
 # To run the published image instead of building, remove "build:" and set
-# "image:" to your Docker Hub repo, e.g. youruser/webdnschecker:latest
+# "image:" to your Docker Hub repo, davidshawcodes/webdnschecker:latest
 
 services:
   webdnschecker:
