@@ -87,8 +87,12 @@ Note: on Windows dev machines `dns.getServers()` may return `127.0.0.1`; set
 - `npm start` — run the server
 - `npm test` — run tests (`node --test`)
 - `docker build -t webdnschecker .` / `docker run -p 8080:8080 webdnschecker`
-- `docker compose up -d --build` / `docker compose down` (`docker-compose.yml`;
-  read-only filesystem, all capabilities dropped; the app must never write to disk)
+- `docker compose up -d` / `docker compose down`: `docker-compose.yml` pulls the
+  published image `davidshawcodes/webdnschecker:latest` and **must stay
+  standalone**, with no `build:` and no references to other repo files. Users
+  paste it into Dockhand or Portainer. It uses a read-only filesystem and drops
+  all capabilities, so the app must never write to disk.
+- Build from source: `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`
 - VS Code F5 → `.vscode/launch.json` builds and runs the container with
   `--inspect` and attaches the debugger; `.vscode/tasks.json` holds the tasks.
 

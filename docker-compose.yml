@@ -1,14 +1,16 @@
-# docker compose up -d --build     → build from this repo and start
-# docker compose logs -f           → follow logs
-# docker compose down              → stop and remove
+# Runs the published image from Docker Hub. This file works on its own,
+# e.g. pasted into Dockhand, Portainer or another compose UI.
 #
-# To run the published image instead of building, remove "build:" and set
-# "image:" to your Docker Hub repo, davidshawcodes/webdnschecker:latest
+#   docker compose up -d       → pull and start
+#   docker compose pull && docker compose up -d   → update to newest release
+#   docker compose down        → stop and remove
+#
+# To build from source instead (inside a clone of the repo):
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 
 services:
   webdnschecker:
-    build: .
-    image: webdnschecker:latest
+    image: davidshawcodes/webdnschecker:latest
     container_name: webdnschecker
     restart: unless-stopped
     ports:

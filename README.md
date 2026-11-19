@@ -32,24 +32,20 @@ docker run -d -p 8080:8080 -e DEFAULT_DNS=192.168.1.1 davidshawcodes/webdnscheck
 
 ### docker compose
 
-The repo includes [docker-compose.yml](docker-compose.yml). It builds from source and runs with a read-only
-filesystem and all Linux capabilities dropped:
+[docker-compose.yml](docker-compose.yml) runs the published image with a read-only filesystem and all Linux
+capabilities dropped. It needs no other files, so you can paste it straight into Dockhand, Portainer or a
+similar tool:
 
 ```sh
-docker compose up -d --build
+docker compose up -d
 DEFAULT_DNS=192.168.1.1 HOST_PORT=8090 docker compose up -d   # optional overrides
+docker compose pull && docker compose up -d                   # update to the latest release
 ```
 
-To use the published image instead, a minimal setup is:
+To build from source inside a clone of the repo, add the build override:
 
-```yaml
-services:
-  dnschecker:
-    image: davidshawcodes/webdnschecker:latest
-    ports: ["8080:8080"]
-    environment:
-      DEFAULT_DNS: 192.168.1.1   # optional
-    restart: unless-stopped
+```sh
+docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 ```
 
 ## Configuration
