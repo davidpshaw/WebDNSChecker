@@ -56,6 +56,7 @@ docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 | `DEFAULT_DNS` | container resolver | Server used for "Default" (`ip` or `ip:port`) |
 | `QUERY_TIMEOUT_MS` | `5000` | Per-query timeout |
 | `RATE_LIMIT` | `60` | Queries per minute per client IP (`0` disables) |
+| `MAX_CONCURRENT_QUERIES` | `50` | Maximum DNS queries in flight across all users. "All common" counts as 8. When full, requests get `503` with `Retry-After: 1` (`0` disables) |
 | `TRUST_PROXY` | `false` | Use `X-Forwarded-For` for the client IP (set when behind a reverse proxy) |
 
 ## API

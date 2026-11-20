@@ -12,9 +12,15 @@ import {
 } from './validate.js';
 import { isIP } from 'node:net';
 
-const PORT = Number(process.env.PORT) || 8080;
-const QUERY_TIMEOUT_MS = Number(process.env.QUERY_TIMEOUT_MS) || 5000;
-const RATE_LIMIT = process.env.RATE_LIMIT === undefined ? 60 : Number(process.env.RATE_LIMIT);
+const envInt = (name, fallback) => {
+  const v = process.env[name];
+  return v === undefined || v === '' || !Number.isFinite(Number(v)) ? fallback : Number(v);
+};
+
+const PORT = envInt('PORT', 8080); // 0 = pick a free port (used by tests)
+const QUERY_TIMEOUT_MS = envInt('QUERY_TIMEOUT_MS', 5000) || 5000;
+const RATE_LIMIT = envInt('RATE_LIMIT', 60);
+const MAX_CONCURRENT_QUERIES = envInt('MAX_CONCURRENT_QUERIES', 50);
 const TRUST_PROXY = /^(1|true|yes)$/i.test(process.env.TRUST_PROXY || '');
 
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
@@ -107,10 +113,11 @@ function send(res, status, body, headers = {}) {
   res.end(body);
 }
 
-function sendJson(res, status, obj) {
+function sendJson(res, status, obj, headers = {}) {
   send(res, status, JSON.stringify(obj), {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
+    ...headers,
   });
 }
 
@@ -152,6 +159,37 @@ async function handleQuery(req, res, url) {
     return sendJson(res, 400, { error: err.message });
   }
 
+  // Global cap on DNS queries in flight (protects sockets/CPU under load).
+  // "ALL" sends one query per type, so it takes that many slots.
+  const slots = type === 'ALL' ? ALL_TYPES.length : 1;
+  if (!acquireSlots(slots)) {
+    return sendJson(res, 503, { error: 'Server is busy handling other queries. Try again in a moment.' },
+      { 'Retry-After': '1' });
+  }
+  try {
+    return await runQuery(res, name, type, server);
+  } finally {
+    releaseSlots(slots);
+  }
+}
+
+let inFlight = 0;
+
+function acquireSlots(n) {
+  if (!MAX_CONCURRENT_QUERIES) return true;
+  // Never let a request need more slots than exist, or ALL could never run.
+  const need = Math.min(n, MAX_CONCURRENT_QUERIES);
+  if (inFlight + need > MAX_CONCURRENT_QUERIES) return false;
+  inFlight += need;
+  return true;
+}
+
+function releaseSlots(n) {
+  if (!MAX_CONCURRENT_QUERIES) return;
+  inFlight -= Math.min(n, MAX_CONCURRENT_QUERIES);
+}
+
+async function runQuery(res, name, type, server) {
   const serverLabel = formatServer(server);
 
   if (type === 'ALL') {
@@ -210,7 +248,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`WebDNSChecker listening on :${PORT} (default DNS ${formatServer(DEFAULT_SERVER)})`);
+  console.log(`WebDNSChecker listening on :${server.address().port} (default DNS ${formatServer(DEFAULT_SERVER)})`);
 });
 
 function shutdown(signal) {

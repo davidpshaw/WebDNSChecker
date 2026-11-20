@@ -50,6 +50,9 @@ lab / trusted LAN.
 - Strict input validation (hostname, IP, port, record type).
 - Per-query timeout (`QUERY_TIMEOUT_MS`, default 5000).
 - In-memory per-IP rate limit (`RATE_LIMIT` requests/minute, default 60) → 429.
+- Global cap on DNS queries in flight (`MAX_CONCURRENT_QUERIES`, default 50;
+  `ALL` takes 8 slots) → 503 + `Retry-After: 1`. 429 = this client is sending
+  too much; 503 = the server is at capacity. Keep the two distinct.
 - Security headers on every response. **No authentication.**
 
 ## Layout
@@ -58,7 +61,8 @@ src/server.js     HTTP server: static files, /api/config, /api/query, rate limit
 src/dns.js        Raw DNS query: UDP, TCP fallback, timeout, timing
 src/validate.js   Input validation, server parsing, PTR name conversion
 public/           index.html, app.css, app.js, favicon.svg (served as-is)
-test/             node:test tests (mock DNS server for dns.js)
+test/             node:test tests (mock DNS server for dns.js; server.test.js
+                  spawns the real server with PORT=0 against a silent DNS server)
 Dockerfile        Multi-stage, node:22-alpine, non-root, HEALTHCHECK
 .github/workflows/docker-publish.yml   Multi-arch build + push
 ```
@@ -68,7 +72,7 @@ Dockerfile        Multi-stage, node:22-alpine, non-root, HEALTHCHECK
 - `GET /api/query?name=&type=&server=` → `{ server, transport, timeMs, rcode,
   flags, question, answers, authorities, additionals }`.
   `type=ALL` → `{ results: { A: {...}, ... } }`. Omit `server` for default.
-  Errors → `{ error }` with 400 / 429 / 502 / 504.
+  Errors → `{ error }` with 400 / 429 / 502 / 503 / 504.
 - `GET /healthz` → `ok` (used by Docker HEALTHCHECK)
 
 ## Environment variables
@@ -78,6 +82,7 @@ Dockerfile        Multi-stage, node:22-alpine, non-root, HEALTHCHECK
 | `DEFAULT_DNS` | container resolver | Server used for "Default" |
 | `QUERY_TIMEOUT_MS` | `5000` | Per-query timeout |
 | `RATE_LIMIT` | `60` | Requests per minute per client IP (0 = off) |
+| `MAX_CONCURRENT_QUERIES` | `50` | Global cap on in-flight DNS queries (0 = off) |
 | `TRUST_PROXY` | `false` | Use `X-Forwarded-For` for client IP (behind a reverse proxy) |
 
 Note: on Windows dev machines `dns.getServers()` may return `127.0.0.1`; set
